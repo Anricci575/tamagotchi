@@ -1,1 +1,1 @@
-# tamagoshi
+# tamagotchi
