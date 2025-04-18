@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RetroTamagotchi</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #000;
+      color: #0f0;
+      font-family: 'Press Start 2P', monospace;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .game-console {
+      width: 320px;
+      height: 480px;
+      background: #111;
+      border: 5px solid #333;
+      border-radius: 20px;
+      position: relative;
+      box-shadow: 0 0 20px #0f06, 0 0 40px #00f3, inset 0 0 15px #0ff2;
+      overflow: hidden;
+    }
+    
+    .game-screen {
+      width: 280px;
+      height: 280px;
+      background: #000;
+      margin: 20px auto;
+      border-radius: 10px;
+      position: relative;
+      overflow: hidden;
+      border: 3px solid #444;
+      box-shadow: 0 0 10px #0f08 inset;
+    }
+    
+    .screen-content {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .alien {
+      width: 100px;
+      height: 100px;
+      background: transparent;
+      position: relative;
+      margin-top: 20px;
+      animation: float 3s infinite alternate;
+      transform-style: preserve-3d;
+    }
+    
+    .alien::before {
+      content: '';
+      position: absolute;
+      width: 60px;
+      height: 80px;
+      background: #0f0;
+      border-radius: 50% 50% 40% 40%;
+      top: 10px;
+      left: 20px;
+      box-shadow: 0 0 15px #0f0, 0 0 25px #0f05;
+      filter: blur(1px);
+      z-index: 1;
+    }
+    
+    .alien .eyes {
+      position: absolute;
+      width: 40px;
+      height: 10px;
+      z-index: 2;
+      top: 35px;
+      left: 30px;
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .alien .eye {
+      width: 12px;
+      height: 12px;
+      background: #000;
+      border-radius: 50%;
+      position: relative;
+    }
+    
+    .alien .eye::after {
+      content: '';
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: #fff;
+      border-radius: 50%;
+      top: 2px;
+      left: 2px;
+    }
+    
+    .alien .mouth {
+      position: absolute;
+      width: 20px;
+      height: 5px;
+      background: #000;
+      border-radius: 0 0 10px 10px;
+      top: 55px;
+      left: 40px;
+      z-index: 2;
+    }
+    
+    .controls {
+      display: flex;
+      justify-content: space-around;
+      padding: 10px;
+      margin-top: 15px;
+    }
+    
+    .btn {
+      width: 50px;
+      height: 50px;
+      background: #222;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #0f0;
+      font-size: 10px;
+      cursor: pointer;
+      box-shadow: 0 0 10px #0f04, inset 0 0 5px #0f03;
+      border: 2px solid #0f05;
+      transition: all 0.2s;
+    }
+    
+    .btn:hover {
+      box-shadow: 0 0 15px #0f07, inset 0 0 8px #0f05;
+      transform: scale(1.05);
+    }
+    
+    .btn:active {
+      transform: scale(0.95);
+      box-shadow: 0 0 5px #0f03, inset 0 0 10px #0f08;
+    }
+    
+    .stats {
+      position: absolute;
+      bottom: 10px;
+      left: 0;
+      width: 100%;
+      padding: 0 20px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      grid-gap: 5px;
+      font-size: 8px;
+    }
+    
+    .stat {
+      margin-bottom: 5px;
+    }
+    
+    .bar {
+      height: 8px;
+      background: #151515;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 2px;
+      box-shadow: inset 0 0 5px #0005;
+    }
+    
+    .bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #0f0, #0ff);
+      width: 80%;
+      transition: width 0.5s;
+      box-shadow: 0 0 10px #0f06;
+    }
+    
+    .grid-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        linear-gradient(rgba(0, 255, 0, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 0, 0.03) 1px, transparent 1px);
+      background-size: 20px 20px;
+      pointer-events: none;
+      z-index: 10;
+    }
+    
+    .scan-line {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to bottom,
+        transparent 0%,
+        rgba(0, 255, 0, 0.1) 50%,
+        transparent 100%);
+      animation: scan 8s linear infinite;
+      pointer-events: none;
+      z-index: 11;
+    }
+    
+    @keyframes scan {
+      0% { transform: translateY(-100%); }
+      100% { transform: translateY(100%); }
+    }
+    
+    @keyframes float {
+      0% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-5px) rotate(2deg); }
+      100% { transform: translateY(0) rotate(-2deg); }
+    }
+    
+    .glitch {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      mix-blend-mode: overlay;
+      pointer-events: none;
+      z-index: 12;
+      opacity: 0.3;
+      background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJibGFjayIgZmlsbC1vcGFjaXR5PSIwLjA1Ii8+PC9zdmc+');
+    }
+  </style>
+</head>
+<body>
+  <div class="game-console">
+    <div class="game-screen">
+      <div class="screen-content">
+        <div class="alien">
+          <div class="eyes">
+            <div class="eye"></div>
+            <div class="eye"></div>
+          </div>
+          <div class="mouth"></div>
+        </div>
+        <div class="stats">
+          <div class="stat">
+            Hunger
+            <div class="bar"><div class="bar-fill" style="width: 80%"></div></div>
+          </div>
+          <div class="stat">
+            Happy
+            <div class="bar"><div class="bar-fill" style="width: 60%"></div></div>
+          </div>
+          <div class="stat">
+            Energy
+            <div class="bar"><div class="bar-fill" style="width: 75%"></div></div>
+          </div>
+          <div class="stat">
+            Health
+            <div class="bar"><div class="bar-fill" style="width: 90%"></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="grid-overlay"></div>
+      <div class="scan-line"></div>
+      <div class="glitch"></div>
+    </div>
+    <div class="controls">
+      <div class="btn" onclick="updateBar('hunger', 10)">FEED</div>
+      <div class="btn" onclick="updateBar('happy', 10)">PLAY</div>
+      <div class="btn" onclick="updateBar('energy', 10)">SLEEP</div>
+      <div class="btn" onclick="updateBar('health', 10)">CLEAN</div>
+    </div>
+  </div>
+
+  <script>
+    let hunger = 8;
+    let happiness = 6;
+    let energy = 7;
+    let health = 9;
+    
+    function updateBar(stat, amount) {
+      let value;
+      let element;
+      
+      switch(stat) {
+        case 'hunger':
+          hunger = Math.min(10, hunger + amount / 10);
+          element = document.querySelectorAll('.bar-fill')[0];
+          value = hunger * 10;
+          break;
+        case 'happy':
+          happiness = Math.min(10, happiness + amount / 10);
+          element = document.querySelectorAll('.bar-fill')[1];
+          value = happiness * 10;
+          break;
+        case 'energy':
+          energy = Math.min(10, energy + amount / 10);
+          element = document.querySelectorAll('.bar-fill')[2];
+          value = energy * 10;
+          break;
+        case 'health':
+          health = Math.min(10, health + amount / 10);
+          element = document.querySelectorAll('.bar-fill')[3];
+          value = health * 10;
+          break;
+      }
+      
+      element.style.width = value + '%';
+    }
+    
+    // Decrease stats over time
+    setInterval(() => {
+      hunger = Math.max(0, hunger - 0.1);
+      happiness = Math.max(0, happiness - 0.15);
+      energy = Math.max(0, energy - 0.05);
+      health = Math.max(0, health - 0.025);
+      
+      document.querySelectorAll('.bar-fill')[0].style.width = hunger * 10 + '%';
+      document.querySelectorAll('.bar-fill')[1].style.width = happiness * 10 + '%';
+      document.querySelectorAll('.bar-fill')[2].style.width = energy * 10 + '%';
+      document.querySelectorAll('.bar-fill')[3].style.width = health * 10 + '%';
+      
+      // Change alien appearance based on stats
+      const alien = document.querySelector('.alien');
+      
+      if (hunger < 3 || happiness < 3 || energy < 3 || health < 3) {
+        alien.style.filter = 'hue-rotate(180deg) brightness(0.8)';
+        document.querySelector('.mouth').style.borderRadius = '10px 10px 0 0';
+      } else {
+        alien.style.filter = 'none';
+        document.querySelector('.mouth').style.borderRadius = '0 0 10px 10px';
+      }
+    }, 1000);
+    
+    // Make eyes follow mouse cursor
+    document.addEventListener('mousemove', (event) => {
+      const eyes = document.querySelectorAll('.eye');
+      eyes.forEach(eye => {
+        const rect = eye.getBoundingClientRect();
+        const x = (rect.left + rect.width / 2) - event.clientX;
+        const y = (rect.top + rect.height / 2) - event.clientY;
+        const angle = Math.atan2(y, x) * 180 / Math.PI;
+        
+        // Limit eye movement
+        const distance = Math.min(2, Math.sqrt(x*x + y*y) / 100);
+        const eyeX = Math.cos(angle * Math.PI / 180) * distance * -1;
+        const eyeY = Math.sin(angle * Math.PI / 180) * distance * -1;
+        
+        eye.style.transform = `translate(${eyeX}px, ${eyeY}px)`;
+      });
+    });
+  </script>
+</body>
+</html>
